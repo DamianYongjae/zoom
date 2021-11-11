@@ -42,19 +42,21 @@ function showRoom() {
   const msgForm = room.querySelector("#msg");
   const nameForm = room.querySelector("#name");
   msgForm.addEventListener("submit", handleMessageSubmit);
-  nameForm.addEventListener("submit", handleNicknameSubmit);
+  // nameForm.addEventListener("submit", handleNicknameSubmit);
 }
 
 function handleRoomSubmit(event) {
   event.preventDefault();
-  const input = form.querySelector("input");
+  const room = form.querySelector("#roomname");
+  const nick = form.querySelector("#username");
 
   // 1st parameter: event name, 2nd parameter: can send anything (not only string),
   // you can enter numbers of argument that you want to send, and callback function should be placed on last item.
-  socket.emit("enter_room", input.value, showRoom);
-  roomName = input.value;
+  socket.emit("enter_room", room.value, nick.value, showRoom);
+  // socket.emit("nickname", nick.value);
+  roomName = room.value;
 
-  input.value = "";
+  room.value = "";
 }
 
 form.addEventListener("submit", handleRoomSubmit);
