@@ -40,7 +40,7 @@ function showRoom() {
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
   const msgForm = room.querySelector("#msg");
-  const nameForm = room.querySelector("#name");
+  // const nameForm = room.querySelector("#name");
   msgForm.addEventListener("submit", handleMessageSubmit);
   // nameForm.addEventListener("submit", handleNicknameSubmit);
 }
@@ -48,11 +48,12 @@ function showRoom() {
 function handleRoomSubmit(event) {
   event.preventDefault();
   const room = form.querySelector("#roomname");
-  const nick = form.querySelector("#username");
+  // const nick = form.querySelector("#username");
 
   // 1st parameter: event name, 2nd parameter: can send anything (not only string),
   // you can enter numbers of argument that you want to send, and callback function should be placed on last item.
-  socket.emit("enter_room", room.value, nick.value, showRoom);
+  // socket.emit("enter_room", room.value, nick.value, showRoom);
+  socket.emit("enter_room", room.value, showRoom);
   // socket.emit("nickname", nick.value);
   roomName = room.value;
 
@@ -61,11 +62,15 @@ function handleRoomSubmit(event) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", (user) => {
+socket.on("welcome", (user, newCount) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName} (${newCount})`;
   addMessage(`${user} joined!`);
 });
 
-socket.on("bye", (left) => {
+socket.on("bye", (left, newCount) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName} (${newCount})`;
   addMessage(`${left} left!`);
 });
 
