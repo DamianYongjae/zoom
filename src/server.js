@@ -16,9 +16,20 @@ const handleListen = () => console.log("Listening on http://localhost:3000");
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
+function publicRooms() {
+  const { sids, rooms } = wsServer.sockets.adapter;
+
+  const publicRooms = [];
+  rooms.forEach((_, key) => {
+    if (!sids.get(key)) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
+
 wsServer.on("connection", (socket) => {
   socket["nickname"] = "anonnymous";
-  console.log(socket.rooms);
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
   });
@@ -28,6 +39,7 @@ wsServer.on("connection", (socket) => {
     socket["nickname"] = nickname;
     done();
     socket.to(roomName).emit("welcome", socket.nickname);
+    wsServer.sockets.emit("room_change", publicRooms());
   });
 
   // we can send one last good bye before disconnect socket
@@ -35,6 +47,10 @@ wsServer.on("connection", (socket) => {
     socket.rooms.forEach((room) =>
       socket.to(room).emit("bye", socket.nickname)
     );
+  });
+
+  socket.on("disconnect", () => {
+    wsServer.sockets.emit("room_change", publicRooms());
   });
 
   socket.on("new_message", (msg, room, done) => {
