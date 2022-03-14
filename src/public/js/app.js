@@ -5,9 +5,14 @@ const muteButton = document.getElementById("mute");
 const cameraButton = document.getElementById("camera");
 const cameraSelect = document.getElementById("cameras");
 
+const call = document.getElementById("call");
+
+call.hidden = true;
+
 let myStream;
 let muted = false;
 let cameraOff = false;
+let roomName;
 
 async function getCameras() {
   try {
@@ -52,8 +57,6 @@ async function getMedia(deviceId) {
   }
 }
 
-getMedia();
-
 function handleMuteClick() {
   myStream
     .getAudioTracks()
@@ -88,6 +91,37 @@ async function handleCameraChange() {
 muteButton.addEventListener("click", handleMuteClick);
 cameraButton.addEventListener("click", handleCameraOffClick);
 cameraSelect.addEventListener("input", handleCameraChange);
+
+//Welcom Fomr (join a room)
+const welcome = document.getElementById("welcome");
+
+const welcomeForm = welcome.querySelector("form");
+
+function startMedia() {
+  welcome.hidden = true;
+  call.hidden = false;
+
+  getMedia();
+}
+
+function handleWelcomeSubmit(event) {
+  event.preventDefault();
+
+  const input = welcomeForm.querySelector("input");
+  socket.emit("join_room", input.value, startMedia);
+  roomName = input.value;
+  input.value = "";
+}
+
+welcomeForm.addEventListener("submit", handleWelcomeSubmit);
+
+//socket code
+
+socket.on("welcome", () => {
+  console.log("someone joined");
+});
+
+//Socket IO part
 
 // const welcome = document.getElementById("welcome");
 
@@ -150,6 +184,8 @@ cameraSelect.addEventListener("input", handleCameraChange);
 // }
 
 // form.addEventListener("submit", handleRoomSubmit);
+
+// WebSocket part
 
 // socket.on("welcome", (user, newCount) => {
 //   const h3 = room.querySelector("h3");

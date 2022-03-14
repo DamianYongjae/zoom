@@ -16,8 +16,17 @@ const handleListen = () => console.log("Listening on http://localhost:3000");
 // start http server and websocket server on same port number.
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
+wsServer.on("connection", (socket) => {
+  socket.on("join_room", (roomName, done) => {
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome");
+  });
+});
 
 httpServer.listen(3000, handleListen);
+
+// Socket IO part
 
 // const wsServer = new Server(httpServer, {
 //   cors: {
@@ -79,7 +88,7 @@ httpServer.listen(3000, handleListen);
 //   socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 // });
 
-/*
+/* WebSocket part
 const wss = new WebSocket.Server({ server });
 const sockets = [];
 wss.on("connection", (socket) => {
