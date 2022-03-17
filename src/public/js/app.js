@@ -99,18 +99,19 @@ const welcome = document.getElementById("welcome");
 
 const welcomeForm = welcome.querySelector("form");
 
-async function startMedia() {
+async function initCall() {
   welcome.hidden = true;
   call.hidden = false;
   await getMedia();
   makeConnection();
 }
 
-function handleWelcomeSubmit(event) {
+async function handleWelcomeSubmit(event) {
   event.preventDefault();
 
   const input = welcomeForm.querySelector("input");
-  socket.emit("join_room", input.value, startMedia);
+  await initCall();
+  socket.emit("join_room", input.value);
   roomName = input.value;
   input.value = "";
 }
@@ -119,7 +120,7 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 //socket code
 
-//Peer A - sender
+//Peer(Browser) A - send an offer (person who came first)
 socket.on("welcome", async () => {
   // console.log("someone joined");
   const offer = await myPeerConnection.createOffer();
@@ -128,9 +129,17 @@ socket.on("welcome", async () => {
   socket.emit("offer", offer, roomName);
 });
 
-//Peer B - receiver
+//Peer(Browser) B - send an answer (person whe came next)
 socket.on("offer", async (offer) => {
-  console.log(offer);
+  myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit("answer", answer, roomName);
+});
+
+//Peer(Browser) A - receive answer (person who came first)
+socket.on("answer", async (answer) => {
+  myPeerConnection.setRemoteDescription(answer);
 });
 
 // RTC code
