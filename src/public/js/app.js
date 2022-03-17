@@ -191,7 +191,6 @@ function handleAddStream(data) {
   const peerFace = document.getElementById("peerFace");
   console.log("got an stream from my peer");
   peerFace.srcObject = data.stream;
-  console.log(data);
 }
 
 //Socket IO part
