@@ -10,9 +10,10 @@ const call = document.getElementById("call");
 call.hidden = true;
 
 let myStream;
-let muted = false;
+let muted = true;
 let cameraOff = false;
 let roomName;
+let myPeerConnection;
 
 async function getCameras() {
   try {
@@ -49,6 +50,7 @@ async function getMedia(deviceId) {
       deviceId ? cameraConstrains : initailContrains
     );
     myFace.srcObject = myStream;
+    myStream.getAudioTracks().forEach((track) => (track.enabled = false));
     if (!deviceId) {
       await getCameras();
     }
@@ -97,11 +99,11 @@ const welcome = document.getElementById("welcome");
 
 const welcomeForm = welcome.querySelector("form");
 
-function startMedia() {
+async function startMedia() {
   welcome.hidden = true;
   call.hidden = false;
-
-  getMedia();
+  await getMedia();
+  makeConnection();
 }
 
 function handleWelcomeSubmit(event) {
@@ -117,9 +119,28 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 //socket code
 
-socket.on("welcome", () => {
-  console.log("someone joined");
+//Peer A - sender
+socket.on("welcome", async () => {
+  // console.log("someone joined");
+  const offer = await myPeerConnection.createOffer();
+  myPeerConnection.setLocalDescription(offer);
+  console.log("sent offer");
+  socket.emit("offer", offer, roomName);
 });
+
+//Peer B - receiver
+socket.on("offer", async (offer) => {
+  console.log(offer);
+});
+
+// RTC code
+
+function makeConnection() {
+  myPeerConnection = new RECPeerConnection();
+  myStream
+    .getTracks()
+    .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
 
 //Socket IO part
 
